@@ -9,7 +9,9 @@ using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+#if NET7_0_OR_GREATER
 using System.Runtime.Intrinsics;
+#endif
 using Jitter2.LinearMath;
 using Jitter2.Unmanaged;
 
@@ -83,7 +85,7 @@ public struct ContactData
     {
         var ptr = (ContactData*)Unsafe.AsPointer(ref this);
 
-        if (Vector.IsHardwareAccelerated)
+        if (VectorExt.IsHardwareAccelerated)
         {
             if ((UsageMask & MaskContact0) != 0) Contact0.PrepareForIterationAccelerated(ptr, idt);
             if ((UsageMask & MaskContact1) != 0) Contact1.PrepareForIterationAccelerated(ptr, idt);
@@ -103,7 +105,7 @@ public struct ContactData
     {
         var ptr = (ContactData*)Unsafe.AsPointer(ref this);
 
-        if (Vector.IsHardwareAccelerated)
+        if (VectorExt.IsHardwareAccelerated)
         {
             if ((UsageMask & MaskContact0) != 0) Contact0.IterateAccelerated(ptr, applyBias);
             if ((UsageMask & MaskContact1) != 0) Contact1.IterateAccelerated(ptr, applyBias);
@@ -123,7 +125,7 @@ public struct ContactData
     /// Gets a value indicating whether the current system supports hardware acceleration
     /// for SIMD (Single Instruction, Multiple Data) operations.
     /// </summary>
-    public static bool IsHardwareAccelerated => Vector.IsHardwareAccelerated;
+    public static bool IsHardwareAccelerated => VectorExt.IsHardwareAccelerated;
 
     public unsafe void UpdatePosition()
     {
@@ -456,7 +458,7 @@ public struct ContactData
             if (!newContact) return;
 
             Flag = Flags.NewContact;
-            Accumulated = Vector.Create((Real)0.0);
+            Accumulated = VectorExt.Create((Real)0.0);
 
             JVector dv = b2.Velocity + b2.AngularVelocity % RelativePosition2;
             dv -= b1.Velocity + b1.AngularVelocity % RelativePosition1;
@@ -487,9 +489,9 @@ public struct ContactData
 
             var tangent2 = tangent1 % n;
 
-            NormalTangentX = Vector.Create(n.X, tangent1.X, tangent2.X, 0);
-            NormalTangentY = Vector.Create(n.Y, tangent1.Y, tangent2.Y, 0);
-            NormalTangentZ = Vector.Create(n.Z, tangent1.Z, tangent2.Z, 0);
+            NormalTangentX = VectorExt.Create(n.X, tangent1.X, tangent2.X, 0);
+            NormalTangentY = VectorExt.Create(n.Y, tangent1.Y, tangent2.Y, 0);
+            NormalTangentZ = VectorExt.Create(n.Z, tangent1.Z, tangent2.Z, 0);
         }
 
         public readonly unsafe bool UpdatePosition(ContactData* cd)
@@ -699,7 +701,7 @@ public struct ContactData
             accumulatedTangentImpulse2 = Math.Clamp(accumulatedTangentImpulse2, -maxTangentImpulse, maxTangentImpulse);
             tangentImpulse2 = accumulatedTangentImpulse2 - oldTangentImpulse2;
 
-            Accumulated = Vector.Create(accumulatedNormalImpulse, accumulatedTangentImpulse1, accumulatedTangentImpulse2, 0);
+            Accumulated = VectorExt.Create(accumulatedNormalImpulse, accumulatedTangentImpulse1, accumulatedTangentImpulse2, 0);
 
             JVector impulse = normalImpulse * normal + tangentImpulse1 * tangent1 + tangentImpulse2 * tangent2;
 
@@ -759,7 +761,7 @@ public struct ContactData
             JVector.Transform(Position1, b1.Orientation, out RelativePosition1);
             JVector.Transform(Position2, b2.Orientation, out RelativePosition2);
 
-            VectorReal kNormalTangent = Vector.Create(b1.InverseMass + b2.InverseMass);
+            VectorReal kNormalTangent = VectorExt.Create(b1.InverseMass + b2.InverseMass);
 
             if ((Flag & Flags.NewContact) == 0)
             {
@@ -781,9 +783,9 @@ public struct ContactData
 
             Flag &= ~Flags.NewContact;
 
-            var ktnx = Vector.Create((Real)0.0);
-            var ktny = Vector.Create((Real)0.0);
-            var ktnz = Vector.Create((Real)0.0);
+            var ktnx = VectorExt.Create((Real)0.0);
+            var ktny = VectorExt.Create((Real)0.0);
+            var ktnz = VectorExt.Create((Real)0.0);
 
             // warm-starting, linear
             Unsafe.SkipInit(out JVector linearImpulse);
@@ -798,20 +800,20 @@ public struct ContactData
 
             if ((cd->Mode & SolveMode.AngularBody1) != 0)
             {
-                var rp1X = Vector.Create(RelativePosition1.X);
-                var rp1Y = Vector.Create(RelativePosition1.Y);
-                var rp1Z = Vector.Create(RelativePosition1.Z);
+                var rp1X = VectorExt.Create(RelativePosition1.X);
+                var rp1Y = VectorExt.Create(RelativePosition1.Y);
+                var rp1Z = VectorExt.Create(RelativePosition1.Z);
 
                 var rrx = Vector.Subtract(Vector.Multiply(rp1Y, NormalTangentZ), Vector.Multiply(rp1Z, NormalTangentY));
                 var rry = Vector.Subtract(Vector.Multiply(rp1Z, NormalTangentX), Vector.Multiply(rp1X, NormalTangentZ));
                 var rrz = Vector.Subtract(Vector.Multiply(rp1X, NormalTangentY), Vector.Multiply(rp1Y, NormalTangentX));
 
-                var ixx = Vector.Create(b1.InverseInertiaWorld.M11);
-                var ixy = Vector.Create(b1.InverseInertiaWorld.M21);
-                var ixz = Vector.Create(b1.InverseInertiaWorld.M31);
-                var iyy = Vector.Create(b1.InverseInertiaWorld.M22);
-                var iyz = Vector.Create(b1.InverseInertiaWorld.M23);
-                var izz = Vector.Create(b1.InverseInertiaWorld.M33);
+                var ixx = VectorExt.Create(b1.InverseInertiaWorld.M11);
+                var ixy = VectorExt.Create(b1.InverseInertiaWorld.M21);
+                var ixz = VectorExt.Create(b1.InverseInertiaWorld.M31);
+                var iyy = VectorExt.Create(b1.InverseInertiaWorld.M22);
+                var iyz = VectorExt.Create(b1.InverseInertiaWorld.M23);
+                var izz = VectorExt.Create(b1.InverseInertiaWorld.M33);
 
                 var e1 = Vector.Add(Vector.Add(Vector.Multiply(ixx, rrx), Vector.Multiply(ixy, rry)), Vector.Multiply(ixz, rrz));
                 var e2 = Vector.Add(Vector.Add(Vector.Multiply(ixy, rrx), Vector.Multiply(iyy, rry)), Vector.Multiply(iyz, rrz));
@@ -836,20 +838,20 @@ public struct ContactData
 
             if ((cd->Mode & SolveMode.AngularBody2) != 0)
             {
-                var rp2X = Vector.Create(RelativePosition2.X);
-                var rp2Y = Vector.Create(RelativePosition2.Y);
-                var rp2Z = Vector.Create(RelativePosition2.Z);
+                var rp2X = VectorExt.Create(RelativePosition2.X);
+                var rp2Y = VectorExt.Create(RelativePosition2.Y);
+                var rp2Z = VectorExt.Create(RelativePosition2.Z);
 
                 var rrx = Vector.Subtract(Vector.Multiply(rp2Y, NormalTangentZ), Vector.Multiply(rp2Z, NormalTangentY));
                 var rry = Vector.Subtract(Vector.Multiply(rp2Z, NormalTangentX), Vector.Multiply(rp2X, NormalTangentZ));
                 var rrz = Vector.Subtract(Vector.Multiply(rp2X, NormalTangentY), Vector.Multiply(rp2Y, NormalTangentX));
 
-                var ixx = Vector.Create(b2.InverseInertiaWorld.M11);
-                var ixy = Vector.Create(b2.InverseInertiaWorld.M21);
-                var ixz = Vector.Create(b2.InverseInertiaWorld.M31);
-                var iyy = Vector.Create(b2.InverseInertiaWorld.M22);
-                var iyz = Vector.Create(b2.InverseInertiaWorld.M23);
-                var izz = Vector.Create(b2.InverseInertiaWorld.M33);
+                var ixx = VectorExt.Create(b2.InverseInertiaWorld.M11);
+                var ixy = VectorExt.Create(b2.InverseInertiaWorld.M21);
+                var ixz = VectorExt.Create(b2.InverseInertiaWorld.M31);
+                var iyy = VectorExt.Create(b2.InverseInertiaWorld.M22);
+                var iyz = VectorExt.Create(b2.InverseInertiaWorld.M23);
+                var izz = VectorExt.Create(b2.InverseInertiaWorld.M33);
 
                 var f1 = Vector.Add(Vector.Add(Vector.Multiply(ixx, rrx), Vector.Multiply(ixy, rry)), Vector.Multiply(ixz, rrz));
                 var f2 = Vector.Add(Vector.Add(Vector.Multiply(ixy, rrx), Vector.Multiply(iyy, rry)), Vector.Multiply(iyz, rrz));
@@ -872,7 +874,7 @@ public struct ContactData
 
             kNormalTangent = Vector.Add(kNormalTangent, kres);
 
-            var mnt = Vector.Divide(Vector.Create((Real)1.0), kNormalTangent);
+            var mnt = Vector.Divide(VectorExt.Create((Real)1.0), kNormalTangent);
             Unsafe.CopyBlock(Unsafe.AsPointer(ref MassNormalTangent), Unsafe.AsPointer(ref mnt), 3 * sizeof(Real));
 
             PenaltyBias = BiasFactor * idt * Math.Max((Real)0.0, penetration - AllowedPenetration);
@@ -889,18 +891,18 @@ public struct ContactData
 
             Real bias = applyBias ? MathR.Max(PenaltyBias, Bias) : Bias;
 
-            var vdots = Vector.Add(Vector.Add(Vector.Multiply(NormalTangentX, Vector.Create(dv.X)),
-                Vector.Multiply(NormalTangentY, Vector.Create(dv.Y))), Vector.Multiply(NormalTangentZ, Vector.Create(dv.Z)));
+            var vdots = Vector.Add(Vector.Add(Vector.Multiply(NormalTangentX, VectorExt.Create(dv.X)),
+                Vector.Multiply(NormalTangentY, VectorExt.Create(dv.Y))), Vector.Multiply(NormalTangentZ, VectorExt.Create(dv.Z)));
 
-            var impulse = Vector.Multiply(MassNormalTangent, (Vector.Subtract(Vector.Create(bias, 0, 0, 0), vdots)));
+            var impulse = Vector.Multiply(MassNormalTangent, (Vector.Subtract(VectorExt.Create(bias, 0, 0, 0), vdots)));
             var oldImpulse = Accumulated;
 
             Real maxTangentImpulse = cd->Friction * Accumulated.GetElement(0);
 
             Accumulated = Vector.Add(oldImpulse, impulse);
 
-            var minImpulse = Vector.Create(0, -maxTangentImpulse, -maxTangentImpulse, 0);
-            var maxImpulse = Vector.Create(Real.MaxValue, maxTangentImpulse, maxTangentImpulse, 0);
+            var minImpulse = VectorExt.Create(0, -maxTangentImpulse, -maxTangentImpulse, 0);
+            var maxImpulse = VectorExt.Create(Real.MaxValue, maxTangentImpulse, maxTangentImpulse, 0);
 
             Accumulated = Vector.Min(Vector.Max(Accumulated, minImpulse), maxImpulse);
             impulse = Vector.Subtract(Accumulated, oldImpulse);
@@ -917,20 +919,20 @@ public struct ContactData
 
             if ((cd->Mode & SolveMode.AngularBody1) != 0)
             {
-                var rp1X = Vector.Create(RelativePosition1.X);
-                var rp1Y = Vector.Create(RelativePosition1.Y);
-                var rp1Z = Vector.Create(RelativePosition1.Z);
+                var rp1X = VectorExt.Create(RelativePosition1.X);
+                var rp1Y = VectorExt.Create(RelativePosition1.Y);
+                var rp1Z = VectorExt.Create(RelativePosition1.Z);
 
                 var rrx = Vector.Subtract(Vector.Multiply(rp1Y, NormalTangentZ), Vector.Multiply(rp1Z, NormalTangentY));
                 var rry = Vector.Subtract(Vector.Multiply(rp1Z, NormalTangentX), Vector.Multiply(rp1X, NormalTangentZ));
                 var rrz = Vector.Subtract(Vector.Multiply(rp1X, NormalTangentY), Vector.Multiply(rp1Y, NormalTangentX));
 
-                var ixx = Vector.Create(b1.InverseInertiaWorld.M11);
-                var ixy = Vector.Create(b1.InverseInertiaWorld.M21);
-                var ixz = Vector.Create(b1.InverseInertiaWorld.M31);
-                var iyy = Vector.Create(b1.InverseInertiaWorld.M22);
-                var iyz = Vector.Create(b1.InverseInertiaWorld.M23);
-                var izz = Vector.Create(b1.InverseInertiaWorld.M33);
+                var ixx = VectorExt.Create(b1.InverseInertiaWorld.M11);
+                var ixy = VectorExt.Create(b1.InverseInertiaWorld.M21);
+                var ixz = VectorExt.Create(b1.InverseInertiaWorld.M31);
+                var iyy = VectorExt.Create(b1.InverseInertiaWorld.M22);
+                var iyz = VectorExt.Create(b1.InverseInertiaWorld.M23);
+                var izz = VectorExt.Create(b1.InverseInertiaWorld.M33);
 
                 var e1 = Vector.Add(Vector.Add(Vector.Multiply(ixx, rrx), Vector.Multiply(ixy, rry)), Vector.Multiply(ixz, rrz));
                 var e2 = Vector.Add(Vector.Add(Vector.Multiply(ixy, rrx), Vector.Multiply(iyy, rry)), Vector.Multiply(iyz, rrz));
@@ -951,20 +953,20 @@ public struct ContactData
 
             if ((cd->Mode & SolveMode.AngularBody2) != 0)
             {
-                var rp2X = Vector.Create(RelativePosition2.X);
-                var rp2Y = Vector.Create(RelativePosition2.Y);
-                var rp2Z = Vector.Create(RelativePosition2.Z);
+                var rp2X = VectorExt.Create(RelativePosition2.X);
+                var rp2Y = VectorExt.Create(RelativePosition2.Y);
+                var rp2Z = VectorExt.Create(RelativePosition2.Z);
 
                 var rrx = Vector.Subtract(Vector.Multiply(rp2Y, NormalTangentZ), Vector.Multiply(rp2Z, NormalTangentY));
                 var rry = Vector.Subtract(Vector.Multiply(rp2Z, NormalTangentX), Vector.Multiply(rp2X, NormalTangentZ));
                 var rrz = Vector.Subtract(Vector.Multiply(rp2X, NormalTangentY), Vector.Multiply(rp2Y, NormalTangentX));
 
-                var ixx = Vector.Create(b2.InverseInertiaWorld.M11);
-                var ixy = Vector.Create(b2.InverseInertiaWorld.M21);
-                var ixz = Vector.Create(b2.InverseInertiaWorld.M31);
-                var iyy = Vector.Create(b2.InverseInertiaWorld.M22);
-                var iyz = Vector.Create(b2.InverseInertiaWorld.M23);
-                var izz = Vector.Create(b2.InverseInertiaWorld.M33);
+                var ixx = VectorExt.Create(b2.InverseInertiaWorld.M11);
+                var ixy = VectorExt.Create(b2.InverseInertiaWorld.M21);
+                var ixz = VectorExt.Create(b2.InverseInertiaWorld.M31);
+                var iyy = VectorExt.Create(b2.InverseInertiaWorld.M22);
+                var iyz = VectorExt.Create(b2.InverseInertiaWorld.M23);
+                var izz = VectorExt.Create(b2.InverseInertiaWorld.M33);
 
                 var f1 = Vector.Add(Vector.Add(Vector.Multiply(ixx, rrx), Vector.Multiply(ixy, rry)), Vector.Multiply(ixz, rrz));
                 var f2 = Vector.Add(Vector.Add(Vector.Multiply(ixy, rrx), Vector.Multiply(iyy, rry)), Vector.Multiply(iyz, rrz));

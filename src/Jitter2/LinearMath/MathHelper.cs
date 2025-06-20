@@ -60,7 +60,7 @@ public static class MathHelper
         else
         {
             Real halfAngleDt = (Real)0.5 * angle * dt;
-            (Real sinD, Real cosD) = MathR.SinCos(halfAngleDt);
+            (Real sinD, Real cosD) = MathRExt.SinCos(halfAngleDt);
 
             Real scale = sinD / angle;
             JVector.Multiply(omega, scale, out var axis);
@@ -133,7 +133,7 @@ public static class MathHelper
             if (MathR.Abs(m.M23) > (Real)1e-6)
             {
                 phi = MathR.Atan2(1, (m.M33 - m.M22) / ((Real)2.0 * m.M23)) / (Real)2.0;
-                (sp, cp) = MathR.SinCos(phi);
+                (sp, cp) = MathRExt.SinCos(phi);
                 r = new JMatrix(1, 0, 0, 0, cp, sp, 0, -sp, cp);
                 JMatrix.Multiply(m, r, out m);
                 JMatrix.TransposedMultiply(r, m, out m);
@@ -144,7 +144,7 @@ public static class MathHelper
             if (MathR.Abs(m.M21) > (Real)1e-6)
             {
                 phi = MathR.Atan2(1, (m.M22 - m.M11) / ((Real)2.0 * m.M21)) / (Real)2.0;
-                (sp, cp) = MathR.SinCos(phi);
+                (sp, cp) = MathRExt.SinCos(phi);
                 r = new JMatrix(cp, sp, 0, -sp, cp, 0, 0, 0, 1);
                 JMatrix.Multiply(m, r, out m);
                 JMatrix.TransposedMultiply(r, m, out m);
@@ -155,7 +155,7 @@ public static class MathHelper
             if (MathR.Abs(m.M31) > (Real)1e-6)
             {
                 phi = MathR.Atan2(1, (m.M33 - m.M11) / ((Real)2.0 * m.M31)) / (Real)2.0;
-                (sp, cp) = MathR.SinCos(phi);
+                (sp, cp) = MathRExt.SinCos(phi);
                 r = new JMatrix(cp, 0, sp, 0, 1, 0, -sp, 0, cp);
                 JMatrix.Multiply(m, r, out m);
                 JMatrix.TransposedMultiply(r, m, out m);

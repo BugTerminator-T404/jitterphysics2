@@ -25,9 +25,9 @@ public class BoxShape : RigidBodyShape
     /// </exception>
     public BoxShape(JVector size)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(size.X, nameof(size));
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(size.Y, nameof(size));
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(size.Z, nameof(size));
+        ArgumentOutOfRangeExceptionExt.ThrowIfNegativeOrZero(size.X, nameof(size));
+        ArgumentOutOfRangeExceptionExt.ThrowIfNegativeOrZero(size.Y, nameof(size));
+        ArgumentOutOfRangeExceptionExt.ThrowIfNegativeOrZero(size.Z, nameof(size));
 
         halfSize = (Real)0.5 * size;
         UpdateWorldBoundingBox();
@@ -44,9 +44,9 @@ public class BoxShape : RigidBodyShape
         get => (Real)2.0 * halfSize;
         set
         {
-            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(value.X, nameof(Size));
-            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(value.Y, nameof(Size));
-            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(value.Z, nameof(Size));
+            ArgumentOutOfRangeExceptionExt.ThrowIfNegativeOrZero(value.X, nameof(Size));
+            ArgumentOutOfRangeExceptionExt.ThrowIfNegativeOrZero(value.Y, nameof(Size));
+            ArgumentOutOfRangeExceptionExt.ThrowIfNegativeOrZero(value.Z, nameof(Size));
 
             halfSize = value * 0.5f;
             UpdateWorldBoundingBox();
@@ -61,7 +61,7 @@ public class BoxShape : RigidBodyShape
     /// </exception>
     public BoxShape(Real size)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(size, nameof(size));
+        ArgumentOutOfRangeExceptionExt.ThrowIfNegativeOrZero(size, nameof(size));
 
         halfSize = new JVector(size * (Real)0.5);
         UpdateWorldBoundingBox();
@@ -79,9 +79,9 @@ public class BoxShape : RigidBodyShape
     /// </exception>
     public BoxShape(Real width, Real height, Real length)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(length, nameof(length));
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height, nameof(height));
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width,  nameof(width));
+        ArgumentOutOfRangeExceptionExt.ThrowIfNegativeOrZero(length, nameof(length));
+        ArgumentOutOfRangeExceptionExt.ThrowIfNegativeOrZero(height, nameof(height));
+        ArgumentOutOfRangeExceptionExt.ThrowIfNegativeOrZero(width,  nameof(width));
 
         halfSize = (Real)0.5 * new JVector(width, height, length);
         UpdateWorldBoundingBox();

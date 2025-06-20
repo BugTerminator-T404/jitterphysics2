@@ -125,7 +125,12 @@ public class ConvexHullShape : RigidBodyShape
 
         neighborList = new List<ushort>();
 
+#if NET6_0_OR_GREATER
         var tmpVerticesSpan = CollectionsMarshal.AsSpan(tmpVertices);
+#else
+        var tmpVerticesArray = tmpVertices.ToArray();
+        var tmpVerticesSpan = tmpVerticesArray.AsSpan();
+#endif
 
         for (int i = 0; i < tmpVerticesSpan.Length; i++)
         {
@@ -135,7 +140,10 @@ public class ConvexHullShape : RigidBodyShape
             element.NeighborMaxIndex = (ushort)neighborList.Count;
             tmpNeighbors[i].Clear();
         }
-
+#if !NET6_0_OR_GREATER
+        tmpVertices.Clear();
+        tmpVertices.AddRange(tmpVerticesArray);
+#endif
         vertices = tmpVertices.ToArray();
 
         tmpIndices.Clear();

@@ -7,7 +7,9 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+#if NET7_0_OR_GREATER
 using System.Runtime.Intrinsics;
+#endif
 using Jitter2.LinearMath;
 
 namespace Jitter2.Collision;
@@ -39,14 +41,14 @@ public struct TreeBox : IEquatable<TreeBox>
     /// reinterpreted as a SIMD vector for efficient processing.
     /// This enables vectorized operations on the bounding box's minimum corner.
     /// </summary>
-    public readonly ref VectorReal VectorMin => ref Unsafe.As<JVector, VectorReal>(ref Unsafe.AsRef(in this.Min));
+    public unsafe readonly ref VectorReal VectorMin => ref Unsafe.As<JVector, VectorReal>(ref Unsafe.AsRef(in this.Min));
 
     /// <summary>
     /// Returns a <see cref="VectorReal"/> view of the <see cref="Max"/> vector,
     /// reinterpreted as a SIMD vector for efficient processing.
     /// This enables vectorized operations on the bounding box's maximum corner.
     /// </summary>
-    public readonly ref VectorReal VectorMax => ref Unsafe.As<JVector, VectorReal>(ref Unsafe.AsRef(in this.Max));
+    public unsafe readonly ref VectorReal VectorMax => ref Unsafe.As<JVector, VectorReal>(ref Unsafe.AsRef(in this.Max));
 
     public TreeBox(in JVector min, in JVector max)
     {
@@ -200,21 +202,21 @@ public struct TreeBox : IEquatable<TreeBox>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool Encompasses(in TreeBox outer, in TreeBox inner)
     {
-        var leMin = Vector.LessThanOrEqual(outer.VectorMin, inner.VectorMin);
-        var geMax = Vector.GreaterThanOrEqual(outer.VectorMax, inner.VectorMax);
+        var leMin = VectorExt.LessThanOrEqual(outer.VectorMin, inner.VectorMin);
+        var geMax = VectorExt.GreaterThanOrEqual(outer.VectorMax, inner.VectorMax);
 
-        var mask = Vector.BitwiseAnd(leMin, geMax);
-        return Vector.EqualsAll(mask.AsInt32(), Vector.Create(-1));
+        var mask = VectorExt.BitwiseAnd(leMin, geMax);
+        return VectorExt.EqualsAll(mask.AsInt32(), VectorExt.Create(-1));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool NotDisjoint(in TreeBox first, in TreeBox second)
     {
-        var geMin = Vector.GreaterThanOrEqual(first.VectorMax, second.VectorMin);
-        var leMax = Vector.LessThanOrEqual(first.VectorMin, second.VectorMax);
+        var geMin = VectorExt.GreaterThanOrEqual(first.VectorMax, second.VectorMin);
+        var leMax = VectorExt.LessThanOrEqual(first.VectorMin, second.VectorMax);
 
-        var mask = Vector.BitwiseAnd(geMin, leMax);
-        return Vector.EqualsAll(mask.AsInt32(), Vector.Create(-1));
+        var mask = VectorExt.BitwiseAnd(geMin, leMax);
+        return VectorExt.EqualsAll(mask.AsInt32(), VectorExt.Create(-1));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -222,11 +224,11 @@ public struct TreeBox : IEquatable<TreeBox>
     {
         // If first.Max < second.Min OR first.Min > second.Max on any axis,
         // the two boxes cannot overlap.
-        var ltMin = Vector.LessThan(first.VectorMax, second.VectorMin);
-        var gtMax = Vector.GreaterThan(first.VectorMin, second.VectorMax);
+        var ltMin = VectorExt.LessThan(first.VectorMax, second.VectorMin);
+        var gtMax = VectorExt.GreaterThan(first.VectorMin, second.VectorMax);
 
-        var mask = Vector.BitwiseOr(ltMin, gtMax);
-        return !Vector.EqualsAll(mask.AsInt32(), Vector.Create(0));
+        var mask = VectorExt.BitwiseOr(ltMin, gtMax);
+        return !VectorExt.EqualsAll(mask.AsInt32(), VectorExt.Create(0));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

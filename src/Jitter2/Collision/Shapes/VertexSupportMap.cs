@@ -6,7 +6,9 @@
 
 using System;
 using System.Collections.Generic;
+#if NET7_0_OR_GREATER
 using System.Runtime.Intrinsics;
+#endif
 using Jitter2.LinearMath;
 
 namespace Jitter2.Collision.Shapes;
@@ -43,7 +45,7 @@ public struct VertexSupportMap : ISupportMappable, IEquatable<VertexSupportMap>
 
     public readonly void SupportMap(in JVector direction, out JVector result)
     {
-        if (Vector.IsHardwareAccelerated) SupportMapAccelerated(direction, out result);
+        if (VectorExt.IsHardwareAccelerated) SupportMapAccelerated(direction, out result);
         else SupportMapScalar(direction, out result);
     }
 
@@ -53,16 +55,16 @@ public struct VertexSupportMap : ISupportMappable, IEquatable<VertexSupportMap>
         int length = xvalues.Length;
         int index = 0;
 
-        var dirX = Vector.Create(direction.X);
-        var dirY = Vector.Create(direction.Y);
-        var dirZ = Vector.Create(direction.Z);
+        var dirX = VectorExt.Create(direction.X);
+        var dirY = VectorExt.Create(direction.Y);
+        var dirZ = VectorExt.Create(direction.Z);
 
         int i = 0;
         for (; i <= length - 4; i += 4)
         {
-            var vx = Vector.LoadUnsafe(ref xvalues[i]);
-            var vy = Vector.LoadUnsafe(ref yvalues[i]);
-            var vz = Vector.LoadUnsafe(ref zvalues[i]);
+            var vx = VectorExt.LoadUnsafe(ref xvalues[i]);
+            var vy = VectorExt.LoadUnsafe(ref yvalues[i]);
+            var vz = VectorExt.LoadUnsafe(ref zvalues[i]);
 
             var dx = Vector.Multiply(vx, dirX);
             var dy = Vector.Multiply(vy, dirY);

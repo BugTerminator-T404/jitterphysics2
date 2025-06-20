@@ -178,7 +178,7 @@ public sealed class RigidBody : IPartitionedSetIndex, IDebugDrawable
         get => friction;
         set
         {
-            ArgumentOutOfRangeException.ThrowIfNegative(value, nameof(value));
+            ArgumentOutOfRangeExceptionExt.ThrowIfNegative(value, nameof(value));
             friction = value;
         }
     }
@@ -198,8 +198,8 @@ public sealed class RigidBody : IPartitionedSetIndex, IDebugDrawable
         get => restitution;
         set
         {
-            ArgumentOutOfRangeException.ThrowIfNegative(value, nameof(value));
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(value, (Real)1.0, nameof(value));
+            ArgumentOutOfRangeExceptionExt.ThrowIfNegative(value, nameof(value));
+            ArgumentOutOfRangeExceptionExt.ThrowIfGreaterThan(value, (Real)1.0, nameof(value));
 
             if (value < (Real)0.0 || value > (Real)1.0)
             {
@@ -256,8 +256,8 @@ public sealed class RigidBody : IPartitionedSetIndex, IDebugDrawable
         get => (MathR.Sqrt(inactiveThresholdAngularSq), MathR.Sqrt(inactiveThresholdLinearSq));
         set
         {
-            ArgumentOutOfRangeException.ThrowIfNegative(value.linear, nameof(value.linear));
-            ArgumentOutOfRangeException.ThrowIfNegative(value.angular, nameof(value.angular));
+            ArgumentOutOfRangeExceptionExt.ThrowIfNegative(value.linear, nameof(value.linear));
+            ArgumentOutOfRangeExceptionExt.ThrowIfNegative(value.angular, nameof(value.angular));
 
             inactiveThresholdLinearSq = value.linear * value.linear;
             inactiveThresholdAngularSq = value.angular * value.angular;
@@ -280,11 +280,11 @@ public sealed class RigidBody : IPartitionedSetIndex, IDebugDrawable
         get => ((Real)1.0 - linearDampingMultiplier, (Real)1.0 - angularDampingMultiplier);
         set
         {
-            ArgumentOutOfRangeException.ThrowIfNegative(value.linear, nameof(value.linear));
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(value.linear, (Real)1.0, nameof(value.linear));
+            ArgumentOutOfRangeExceptionExt.ThrowIfNegative(value.linear, nameof(value.linear));
+            ArgumentOutOfRangeExceptionExt.ThrowIfGreaterThan(value.linear, (Real)1.0, nameof(value.linear));
 
-            ArgumentOutOfRangeException.ThrowIfNegative(value.angular, nameof(value.angular));
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(value.angular, (Real)1.0, nameof(value.angular));
+            ArgumentOutOfRangeExceptionExt.ThrowIfNegative(value.angular, nameof(value.angular));
+            ArgumentOutOfRangeExceptionExt.ThrowIfGreaterThan(value.angular, (Real)1.0, nameof(value.angular));
 
             linearDampingMultiplier = (Real)1.0 - value.linear;
             angularDampingMultiplier = (Real)1.0 - value.angular;

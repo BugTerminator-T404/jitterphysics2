@@ -196,7 +196,7 @@ public partial struct JQuaternion(Real x, Real y, Real z, Real w) : IEquatable<J
     public static JQuaternion CreateRotationX(Real radians)
     {
         Real halfAngle = radians * (Real)0.5;
-        (Real sha, Real cha) = MathR.SinCos(halfAngle);
+        (Real sha, Real cha) = MathRExt.SinCos(halfAngle);
         return new JQuaternion(sha, 0, 0, cha);
     }
 
@@ -208,7 +208,7 @@ public partial struct JQuaternion(Real x, Real y, Real z, Real w) : IEquatable<J
     public static JQuaternion CreateRotationY(Real radians)
     {
         Real halfAngle = radians * (Real)0.5;
-        (Real sha, Real cha) = MathR.SinCos(halfAngle);
+        (Real sha, Real cha) = MathRExt.SinCos(halfAngle);
         return new JQuaternion(0, sha, 0, cha);
     }
 
@@ -220,7 +220,7 @@ public partial struct JQuaternion(Real x, Real y, Real z, Real w) : IEquatable<J
     public static JQuaternion CreateRotationZ(Real radians)
     {
         Real halfAngle = radians * (Real)0.5;
-        (Real sha, Real cha) = MathR.SinCos(halfAngle);
+        (Real sha, Real cha) = MathRExt.SinCos(halfAngle);
         return new JQuaternion(0, 0, sha, cha);
     }
 
@@ -232,7 +232,7 @@ public partial struct JQuaternion(Real x, Real y, Real z, Real w) : IEquatable<J
     public static JQuaternion CreateFromAxisAngle(in JVector axis, JAngle angle)
     {
         Real halfAngle = (Real)angle * (Real)0.5;
-        (Real s, Real c) = MathR.SinCos(halfAngle);
+        (Real s, Real c) = MathRExt.SinCos(halfAngle);
         return new JQuaternion(axis.X * s, axis.Y * s, axis.Z * s, c);
     }
 

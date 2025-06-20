@@ -22,8 +22,13 @@ global using VectorReal = System.Runtime.Intrinsics.Vector256<System.Double>;
 
 global using Real = System.Single;
 global using MathR = System.MathF;
+#if NET7_0_OR_GREATER
 global using Vector = System.Runtime.Intrinsics.Vector128;
 global using VectorReal = System.Runtime.Intrinsics.Vector128<System.Single>;
+#else
+global using Vector = System.Numerics.Vector4;
+global using VectorReal = System.Numerics.Vector4;
+#endif
 
 #endif
 

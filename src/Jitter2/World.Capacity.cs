@@ -33,7 +33,7 @@ public partial class World
             readonly get => DefaultBodyCount + bodyCountOffset;
             set
             {
-                ArgumentOutOfRangeException.ThrowIfNegativeOrZero(value, nameof(value));
+                ArgumentOutOfRangeExceptionExt.ThrowIfNegativeOrZero(value, nameof(value));
                 bodyCountOffset = value - DefaultBodyCount;
             }
         }
@@ -46,7 +46,7 @@ public partial class World
             readonly get => DefaultContactCount + contactCountOffset;
             set
             {
-                ArgumentOutOfRangeException.ThrowIfNegativeOrZero(value, nameof(value));
+                ArgumentOutOfRangeExceptionExt.ThrowIfNegativeOrZero(value, nameof(value));
                 contactCountOffset = value - DefaultContactCount;
             }
         }
@@ -59,7 +59,7 @@ public partial class World
             readonly get => DefaultConstraintCount + constraintCountOffset;
             set
             {
-                ArgumentOutOfRangeException.ThrowIfNegativeOrZero(value, nameof(value));
+                ArgumentOutOfRangeExceptionExt.ThrowIfNegativeOrZero(value, nameof(value));
                 constraintCountOffset = value - DefaultConstraintCount;
             }
         }
@@ -72,7 +72,7 @@ public partial class World
             readonly get => DefaultSmallConstraintCount + smallConstraintCountOffset;
             set
             {
-                ArgumentOutOfRangeException.ThrowIfNegativeOrZero(value, nameof(value));
+                ArgumentOutOfRangeExceptionExt.ThrowIfNegativeOrZero(value, nameof(value));
                 smallConstraintCountOffset = value - DefaultSmallConstraintCount;
             }
         }

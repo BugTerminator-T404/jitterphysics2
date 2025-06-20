@@ -83,26 +83,26 @@ public static unsafe class MemoryHelper
     /// </summary>
     /// <param name="len">The length of the memory block to allocate, in bytes.</param>
     /// <returns>A pointer to the allocated memory block.</returns>
-    public static void* AllocateHeap(int len) => NativeMemory.Alloc((nuint)len);
+    public static void* AllocateHeap(int len) => NativeMemoryExt.Alloc((nuint)len);
 
     /// <summary>
     /// Allocates a block of aligned unmanaged memory of the specified length in bytes.
     /// </summary>
     /// <param name="len">The length of the memory block to allocate, in bytes.</param>
     /// <returns>A pointer to the allocated memory block.</returns>
-    public static void* AlignedAllocateHeap(int len, int alignment) => NativeMemory.AlignedAlloc((nuint)len, (nuint)alignment);
+    public static void* AlignedAllocateHeap(int len, int alignment) => NativeMemoryExt.AlignedAlloc((nuint)len, (nuint)alignment);
 
     /// <summary>
     /// Frees a block of unmanaged memory previously allocated.
     /// </summary>
     /// <param name="ptr">A pointer to the memory block to free.</param>
-    public static void Free(void* ptr) => NativeMemory.Free(ptr);
+    public static void Free(void* ptr) => NativeMemoryExt.Free(ptr);
 
     /// <summary>
     /// Frees a block of aligned unmanaged memory previously allocated.
     /// </summary>
     /// <param name="ptr">A pointer to the aligned memory block to free.</param>
-    public static void AlignedFree(void* ptr) => NativeMemory.AlignedFree(ptr);
+    public static void AlignedFree(void* ptr) => NativeMemoryExt.AlignedFree(ptr);
 
     /// <summary>
     /// Zeros out unmanaged memory.

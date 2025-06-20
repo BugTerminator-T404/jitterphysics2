@@ -93,7 +93,7 @@ public sealed partial class World : IDisposable
     /// </summary>
     public static ulong RequestId()
     {
-        return Interlocked.Increment(ref _idCounter);
+        return InterlockedExt.Increment(ref _idCounter);
     }
 
     /// <summary>
@@ -107,7 +107,7 @@ public sealed partial class World : IDisposable
     {
         if (count < 1) throw new ArgumentOutOfRangeException(nameof(count), "Count must be greater zero.");
         ulong count64 = (ulong)count;
-        ulong max = Interlocked.Add(ref _idCounter, count64) + 1;
+        ulong max = InterlockedExt.Add(ref _idCounter, count64) + 1;
         return (max - count64, max);
     }
 
