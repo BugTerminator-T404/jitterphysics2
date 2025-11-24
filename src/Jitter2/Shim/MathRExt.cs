@@ -1,5 +1,12 @@
 ﻿#if NET6_0_OR_GREATER
+
+#if USE_DOUBLE_PRECISION
+global using MathRExt = System.Math;
+#else
 global using MathRExt = System.MathF;
+#endif
+
+global using doubleExt = double;
 #else
 using System;
 using System.Numerics;
@@ -15,5 +22,9 @@ namespace Jitter2.LinearMath
         }
     }
 
+    public static class doubleExt
+    {
+        public static double Min(double left, double right) => Math.Min(left, right);
+    }
 }
 #endif

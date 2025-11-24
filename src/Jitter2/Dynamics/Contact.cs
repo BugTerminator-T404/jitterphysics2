@@ -166,8 +166,8 @@ public struct ContactData
 
         Debug.Assert(body1.World == body2.World);
 
-        Mode = (!body1.IsStatic) ? SolveMode.FullBody1 : 0;
-        Mode |= (!body2.IsStatic) ? SolveMode.FullBody2 : 0;
+        Mode = (body1.Data.MotionType == MotionType.Dynamic) ? SolveMode.FullBody1 : 0;
+        Mode |= (body2.Data.MotionType == MotionType.Dynamic) ? SolveMode.FullBody2 : 0;
 
         UsageMask = 0;
     }
@@ -443,7 +443,9 @@ public struct ContactData
         /// The impulse applied in the second tangent direction which has been used to solve the contact.
         /// </summary>
         public readonly Real TangentImpulse2 => Accumulated.GetElement(2);
-
+#if NETCOREAPP3_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+#endif
         public void Initialize(ref RigidBodyData b1, ref RigidBodyData b2, in JVector point1, in JVector point2,
             in JVector n, bool newContact, Real restitution)
         {
@@ -494,6 +496,9 @@ public struct ContactData
             NormalTangentZ = VectorExt.Create(n.Z, tangent1.Z, tangent2.Z, 0);
         }
 
+#if NETCOREAPP3_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+#endif
         public readonly unsafe bool UpdatePosition(ContactData* cd)
         {
             ref var b1 = ref cd->Body1.Data;
@@ -753,6 +758,9 @@ public struct ContactData
             return vector.GetElement(0) + vector.GetElement(1) + vector.GetElement(2);
         }
 
+#if NETCOREAPP3_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+#endif
         public unsafe void PrepareForIterationAccelerated(ContactData* cd, Real idt)
         {
             ref var b1 = ref cd->Body1.Data;
@@ -881,6 +889,9 @@ public struct ContactData
             PenaltyBias = Math.Min(PenaltyBias, MaximumBias);
         }
 
+#if NETCOREAPP3_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+#endif
         public unsafe void IterateAccelerated(ContactData* cd, bool applyBias)
         {
             ref var b1 = ref cd->Body1.Data;

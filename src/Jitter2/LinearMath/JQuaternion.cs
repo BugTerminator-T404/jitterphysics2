@@ -238,8 +238,8 @@ public partial struct JQuaternion(Real x, Real y, Real z, Real w) : IEquatable<J
 
     /// <summary>Converts a <b>unit</b> quaternion to axis–angle form.</summary>
     /// <remarks>
-    /// Assumes <paramref name="quaternion"/> is already normalised.
-    /// The returned <paramref name="angle"/> is clamped to the shortest arc [0 , π].
+    /// Assumes <paramref name="quaternion"/> is already normalized.
+    /// The returned <paramref name="angle"/> is clamped to the shortest arc [0, π].
     /// </remarks>
     /// <param name="quaternion">Unit quaternion to decompose.</param>
     /// <param name="axis">Receives the unit rotation axis.</param>
@@ -299,7 +299,8 @@ public partial struct JQuaternion(Real x, Real y, Real z, Real w) : IEquatable<J
     /// </summary>
     /// <param name="quaternion1">The first quaternion.</param>
     /// <param name="quaternion2">The second quaternion.</param>
-    /// <param name="result">When the method completes, contains the product of the conjugate of the first quaternion and the second quaternion.</param>
+    /// <param name="result">When the method completes, contains the product of the conjugate of the first quaternion
+    /// and the second quaternion.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void ConjugateMultiply(in JQuaternion quaternion1, in JQuaternion quaternion2, out JQuaternion result)
     {
