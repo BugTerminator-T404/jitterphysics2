@@ -229,9 +229,9 @@ public partial struct JQuaternion(Real x, Real y, Real z, Real w) : IEquatable<J
     /// </summary>
     /// <param name="axis">The unit vector to rotate around.</param>
     /// <param name="angle">The angle of rotation.</param>
-    public static JQuaternion CreateFromAxisAngle(in JVector axis, JAngle angle)
+    public static JQuaternion CreateFromAxisAngle(in JVector axis, Real angle)
     {
-        Real halfAngle = (Real)angle * (Real)0.5;
+        Real halfAngle = angle * (Real)0.5;
         (Real s, Real c) = MathRExt.SinCos(halfAngle);
         return new JQuaternion(axis.X * s, axis.Y * s, axis.Z * s, c);
     }

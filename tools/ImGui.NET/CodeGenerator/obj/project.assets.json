@@ -62,11 +62,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "F:\\github\\jitterphysics2\\tools\\ImGui.NET\\CodeGenerator\\CodeGenerator.csproj",
+      "projectUniqueName": "E:\\GitHub\\BugTerminator\\jitterphysics2\\tools\\ImGui.NET\\CodeGenerator\\CodeGenerator.csproj",
       "projectName": "CodeGenerator",
-      "projectPath": "F:\\github\\jitterphysics2\\tools\\ImGui.NET\\CodeGenerator\\CodeGenerator.csproj",
+      "projectPath": "E:\\GitHub\\BugTerminator\\jitterphysics2\\tools\\ImGui.NET\\CodeGenerator\\CodeGenerator.csproj",
       "packagesPath": "C:\\Users\\Developer\\.nuget\\packages\\",
-      "outputPath": "F:\\github\\jitterphysics2\\tools\\ImGui.NET\\CodeGenerator\\obj\\",
+      "outputPath": "E:\\GitHub\\BugTerminator\\jitterphysics2\\tools\\ImGui.NET\\CodeGenerator\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
