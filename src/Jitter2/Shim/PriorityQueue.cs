@@ -39,7 +39,7 @@ namespace System.Collections.Generic
 
         public PriorityQueueDebugView(PriorityQueue<TElement, TPriority> queue)
         {
-            ArgumentNullException.ThrowIfNull(queue);
+            ArgumentNullExceptionExt.ThrowIfNull(queue);
 
             _queue = queue;
             _sort = true;
@@ -60,17 +60,6 @@ namespace System.Collections.Generic
         internal const string Arg_RankMultiDimNotSupported = "Multi-dimensional arrays not supported.";
         internal const string Argument_InvalidArrayType = "Invalid array type.";
         internal const string Argument_InvalidOffLen = "Invalid offset or length.";
-    }
-
-    internal static class ArgumentNullException
-    {
-        public static void ThrowIfNull(object o)
-        {
-            if (o == null)
-            {
-                throw new System.ArgumentNullException(); // hard to do it differently without C# 10's features
-            }
-        }
     }
 
     internal static class ArrayEx
@@ -307,7 +296,7 @@ namespace System.Collections.Generic
         /// </remarks>
         public PriorityQueue(IEnumerable<(TElement Element, TPriority Priority)> items, IComparer<TPriority>? comparer)
         {
-            ArgumentNullException.ThrowIfNull(items);
+            ArgumentNullExceptionExt.ThrowIfNull(items);
 
             _nodes = EnumerableHelpers.ToArray(items, out _size);
             _comparer = InitializeComparer(comparer);
@@ -503,7 +492,7 @@ namespace System.Collections.Generic
         /// </exception>
         public void EnqueueRange(IEnumerable<(TElement Element, TPriority Priority)> items)
         {
-            ArgumentNullException.ThrowIfNull(items);
+            ArgumentNullExceptionExt.ThrowIfNull(items);
 
             int count = 0;
             ICollection<(TElement Element, TPriority Priority)>? collection =
@@ -567,7 +556,7 @@ namespace System.Collections.Generic
         /// </exception>
         public void EnqueueRange(IEnumerable<TElement> elements, TPriority priority)
         {
-            ArgumentNullException.ThrowIfNull(elements);
+            ArgumentNullExceptionExt.ThrowIfNull(elements);
 
             int count;
             if (elements is ICollection<(TElement Element, TPriority Priority)> collection &&
@@ -975,7 +964,7 @@ namespace System.Collections.Generic
 
             void ICollection.CopyTo(Array array, int index)
             {
-                ArgumentNullException.ThrowIfNull(array);
+                ArgumentNullExceptionExt.ThrowIfNull(array);
 
                 if (array.Rank != 1)
                 {

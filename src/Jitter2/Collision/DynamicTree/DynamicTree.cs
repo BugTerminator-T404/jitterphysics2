@@ -29,6 +29,9 @@ public partial class DynamicTree
 
     private readonly SlimBag<IDynamicTreeProxy> movedProxies = [];
 
+    /// <summary>
+    /// Gets a read-only view of all proxies registered with this tree.
+    /// </summary>
     public ReadOnlyPartitionedSet<IDynamicTreeProxy> Proxies => new(proxies);
 
     /// <summary>
@@ -36,11 +39,20 @@ public partial class DynamicTree
     /// </summary>
     private readonly PairHashSet potentialPairs = [];
 
+    /// <summary>
+    /// Sentinel value indicating a null/invalid node index.
+    /// </summary>
     public const int NullNode = -1;
+
+    /// <summary>
+    /// Initial capacity of the internal node array.
+    /// </summary>
     public const int InitialSize = 1024;
 
-    // Every update we search 1/PruningFraction of the potential pair hashset
-    // for pairs which are inactive or no longer colliding and remove them.
+    /// <summary>
+    /// Fraction of the potential pairs hash set to scan per update for pruning invalid entries.
+    /// A value of 128 means 1/128th of the hash set is scanned each update.
+    /// </summary>
     public const int PruningFraction = 128;
 
     /// <summary>
@@ -59,30 +71,63 @@ public partial class DynamicTree
     /// </summary>
     public struct Node
     {
-        public int Left, Right;
+        /// <summary>Index of the left child node, or <see cref="NullNode"/> if this is a leaf.</summary>
+        public int Left;
+
+        /// <summary>Index of the right child node, or <see cref="NullNode"/> if this is a leaf.</summary>
+        public int Right;
+
+        /// <summary>Index of the parent node, or <see cref="NullNode"/> if this is the root.</summary>
         public int Parent;
 
         /// <summary>
-        /// The height of the tree if this was the root node.
+        /// The expanded bounding box of this node, used for broadphase culling.
+        /// For leaf nodes, this is the proxy's bounding box expanded by velocity and a margin.
+        /// For internal nodes, this is the union of its children's boxes.
         /// </summary>
         public TreeBox ExpandedBox;
+
+        /// <summary>
+        /// The proxy associated with this node, or <c>null</c> for internal nodes.
+        /// </summary>
         public IDynamicTreeProxy? Proxy;
 
+        /// <summary>
+        /// When set, forces the node to be updated in the next <see cref="DynamicTree.Update"/> call,
+        /// even if its bounding box hasn't changed.
+        /// </summary>
         public bool ForceUpdate;
 
+        /// <summary>
+        /// Returns <c>true</c> if this is a leaf node (has an associated proxy).
+        /// </summary>
         public readonly bool IsLeaf => Proxy != null;
     }
 
+    /// <summary>
+    /// The internal array of tree nodes. Exposed for advanced scenarios such as debugging or visualization.
+    /// </summary>
+    /// <remarks>
+    /// This array may be resized during tree operations. Do not cache references to elements.
+    /// </remarks>
     public Node[] Nodes = new Node[InitialSize];
+
     private readonly Stack<int> freeNodes = [];
     private int nodePointer = -1;
     private int root = NullNode;
 
     /// <summary>
-    /// Gets the root of the dynamic tree.
+    /// Gets the index of the root node, or <see cref="NullNode"/> if the tree is empty.
     /// </summary>
     public int Root => root;
 
+    /// <summary>
+    /// Gets or sets the filter function used to exclude proxy pairs from collision detection.
+    /// </summary>
+    /// <remarks>
+    /// The filter is called during overlap enumeration. Return <c>false</c> to exclude a pair.
+    /// In Jitter, this is typically used to exclude shapes belonging to the same rigid body.
+    /// </remarks>
     public Func<IDynamicTreeProxy, IDynamicTreeProxy, bool> Filter { get; set; }
 
     private readonly Action<OverlapEnumerationParam> enumerateOverlaps;
@@ -110,16 +155,34 @@ public partial class DynamicTree
         Filter = filter;
     }
 
+    /// <summary>
+    /// Profiling buckets for <see cref="DebugTimings"/>, representing stages of <see cref="Update"/>.
+    /// </summary>
     public enum Timings
     {
+        /// <summary>Time spent removing stale pairs from the potential pairs set.</summary>
         PruneInvalidPairs,
+
+        /// <summary>Time spent updating proxy bounding boxes.</summary>
         UpdateBoundingBoxes,
+
+        /// <summary>Time spent scanning for proxies that moved outside their expanded boxes.</summary>
         ScanMoved,
+
+        /// <summary>Time spent reinserting moved proxies into the tree.</summary>
         UpdateProxies,
+
+        /// <summary>Time spent scanning for new overlapping pairs.</summary>
         ScanOverlaps,
+
+        /// <summary>Sentinel value for array sizing. Not a real timing bucket.</summary>
         Last
     }
 
+    /// <summary>
+    /// Contains timings for the stages of the last call to <see cref="Update"/>.
+    /// Values are in milliseconds. Index using <c>(int)Timings.XYZ</c>.
+    /// </summary>
     public readonly double[] DebugTimings = new double[(int)Timings.Last];
 
     /// <summary>
@@ -148,7 +211,7 @@ public partial class DynamicTree
             if(proxyA == null || proxyB == null) continue;
             if(!Filter(proxyA, proxyB)) continue;
 
-            if (JBoundingBox.NotDisjoint(proxyA.WorldBoundingBox, proxyB.WorldBoundingBox))
+            if (!JBoundingBox.Disjoint(proxyA.WorldBoundingBox, proxyB.WorldBoundingBox))
             {
                 parameter.Action(proxyA, proxyB);
             }
@@ -310,6 +373,18 @@ public partial class DynamicTree
                 $"The proxy '{proxy}' has already been added to this tree instance.");
         }
 
+        // 2^53 (approx 9e15) is the limit where double-precision values lose integer precision
+        // (i.e., x + 1.0 == x). Beyond this surface area, the Surface Area Heuristic (SAH)
+        // cannot detect small changes, causing the tree balancing to degrade.
+        //
+        // Note: Since TreeBox calculates surface area using 'double', this assertion
+        // is valid and necessary for both Single (float) and Double (double) precision builds.
+        if (proxy.WorldBoundingBox.GetSurfaceArea() > 9.007e15)
+        {
+            throw new InvalidOperationException(
+                $"Added extremely large proxy to dynamic tree. Surface Area exceeds double precision limits (2^53).");
+        }
+
         InternalAddProxy(proxy);
         OverlapCheckAdd(root, proxy.NodePtr);
         proxies.Add(proxy, active);
@@ -410,7 +485,7 @@ public partial class DynamicTree
             var proxyB = Nodes[n.ID2].Proxy;
 
             if (proxyA != null && proxyB != null &&
-                TreeBox.NotDisjoint(Nodes[proxyA.NodePtr].ExpandedBox, Nodes[proxyB.NodePtr].ExpandedBox) &&
+                !TreeBox.Disjoint(Nodes[proxyA.NodePtr].ExpandedBox, Nodes[proxyB.NodePtr].ExpandedBox) &&
                 (IsActive(proxyA) || IsActive(proxyB)))
             {
                 continue;
@@ -482,7 +557,7 @@ public partial class DynamicTree
 
             if (node.IsLeaf)
             {
-                if (JBoundingBox.NotDisjoint(node.Proxy!.WorldBoundingBox, box))
+                if (!JBoundingBox.Disjoint(node.Proxy!.WorldBoundingBox, box))
                 {
                     hits.Add(node.Proxy);
                 }
@@ -492,10 +567,10 @@ public partial class DynamicTree
                 int child1 = Nodes[index].Left;
                 int child2 = Nodes[index].Right;
 
-                if (TreeBox.NotDisjoint(Nodes[child1].ExpandedBox, sbox))
+                if (!TreeBox.Disjoint(Nodes[child1].ExpandedBox, sbox))
                     _stack.Push(child1);
 
-                if (TreeBox.NotDisjoint(Nodes[child2].ExpandedBox, sbox))
+                if (!TreeBox.Disjoint(Nodes[child2].ExpandedBox, sbox))
                     _stack.Push(child2);
             }
         }
@@ -592,7 +667,6 @@ public partial class DynamicTree
     {
         if (node.IsLeaf)
         {
-            Debug.Assert(node.ExpandedBox.GetSurfaceArea() < 1e8);
             return node.ExpandedBox.GetSurfaceArea();
         }
 
@@ -612,10 +686,10 @@ public partial class DynamicTree
             int child1 = Nodes[index].Left;
             int child2 = Nodes[index].Right;
 
-            if (TreeBox.NotDisjoint(Nodes[child1].ExpandedBox, Nodes[node].ExpandedBox))
+            if (!TreeBox.Disjoint(Nodes[child1].ExpandedBox, Nodes[node].ExpandedBox))
                 OverlapCheckAdd(child1, node);
 
-            if (TreeBox.NotDisjoint(Nodes[child2].ExpandedBox, Nodes[node].ExpandedBox))
+            if (!TreeBox.Disjoint(Nodes[child2].ExpandedBox, Nodes[node].ExpandedBox))
                 OverlapCheckAdd(child2, node);
         }
     }
@@ -633,10 +707,10 @@ public partial class DynamicTree
             int child1 = Nodes[index].Left;
             int child2 = Nodes[index].Right;
 
-            if (TreeBox.NotDisjoint(Nodes[child1].ExpandedBox, Nodes[node].ExpandedBox))
+            if (!TreeBox.Disjoint(Nodes[child1].ExpandedBox, Nodes[node].ExpandedBox))
                 OverlapCheckRemove(child1, node);
 
-            if (TreeBox.NotDisjoint(Nodes[child2].ExpandedBox, Nodes[node].ExpandedBox))
+            if (!TreeBox.Disjoint(Nodes[child2].ExpandedBox, Nodes[node].ExpandedBox))
                 OverlapCheckRemove(child2, node);
         }
     }
@@ -649,7 +723,7 @@ public partial class DynamicTree
 
             ref var node = ref Nodes[proxy.NodePtr];
 
-            if (node.ForceUpdate || !node.ExpandedBox.Encompasses(proxy.WorldBoundingBox))
+            if (node.ForceUpdate || !node.ExpandedBox.Contains(proxy.WorldBoundingBox))
             {
                 node.ForceUpdate = false;
                 movedProxies.ConcurrentAdd(proxy);
@@ -1047,17 +1121,17 @@ public partial class DynamicTree
         }
 
         ref TreeBox nodeTreeBox = ref Nodes[node].ExpandedBox;
-        
+
         while (where != root)
         {
-            if (TreeBox.Encompasses(Nodes[where].ExpandedBox,nodeTreeBox))
+            if (TreeBox.Contains(Nodes[where].ExpandedBox,nodeTreeBox))
             {
                 break;
             }
 
             where = Nodes[where].Parent;
         }
-        
+
         int insertionParent = Nodes[where].Parent;
 
         // search for the best sibling
@@ -1095,7 +1169,7 @@ public partial class DynamicTree
             int rgt = Nodes[index].Right;
 
             TreeBox.CreateMerged(Nodes[lft].ExpandedBox, Nodes[rgt].ExpandedBox, out Nodes[index].ExpandedBox);
-            
+
             index = Nodes[index].Parent;
         }
     }

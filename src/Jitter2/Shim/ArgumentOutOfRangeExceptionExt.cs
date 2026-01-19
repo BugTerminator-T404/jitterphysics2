@@ -10,7 +10,7 @@ namespace System
 {
     public static class ArgumentOutOfRangeExceptionExt
     {
-        public static void ThrowIfNegative(float value, string paramName) {
+        public static void ThrowIfNegative(float value, string? paramName = null) {
             if (value < 0)
             {
                 throw new ArgumentOutOfRangeException(paramName, "Value cannot be negative.");
@@ -22,17 +22,43 @@ namespace System
         {
             if (value <= 0)
             {
-                throw new ArgumentOutOfRangeException(paramName, "Value must be greater than zero.");
+                throw new ArgumentOutOfRangeException(paramName, "Value cannot be negative or zero");
             }
         }
 
-        public static void ThrowIfGreaterThan(float value, float maxValue, string paramName)
+        public static void ThrowIfLessThan(float left, float right, string? paramName = null)
         {
-            if (value > maxValue)
+            if (left < right)
             {
-                throw new ArgumentOutOfRangeException(paramName, $"Value cannot be greater than {maxValue}.");
+                throw new ArgumentOutOfRangeException(paramName, $"Value cannot be less than {right}.");
             }
         }
+
+        public static void ThrowIfLessThanOrEqual(float left, float right, string? paramName = null)
+        {
+            if (left <= right)
+            {
+                throw new ArgumentOutOfRangeException(paramName, $"Value cannot be less than {right}.");
+            }
+        }
+
+
+        public static void ThrowIfGreaterThan(float left, float right, string? paramName = null)
+        {
+            if (left > right)
+            {
+                throw new ArgumentOutOfRangeException(paramName, $"Value cannot be greater than {right}.");
+            }
+        }
+
+        public static void ThrowIfGreaterThanOrEqual(float left, float right, string? paramName = null)
+        {
+            if (left >= right)
+            {
+                throw new ArgumentOutOfRangeException(paramName, $"Value cannot be greater than {right} or equal.");
+            }
+        }
+        
     }
 }
 #endif
